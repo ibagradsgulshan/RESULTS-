@@ -13,6 +13,7 @@
     <!-- PDF & Excel Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf-autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -93,14 +94,14 @@
         
         <!-- Form & Subject Management in a Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-            <div class="lg:col-span-3 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <div class="lg:col-span-4 bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">ADD NEW RESULTS</h2>
                 <form id="resultForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="md:col-span-2">
                         <label for="studentName" class="block text-sm font-medium text-gray-600 mb-1">Student ka Naam</label>
                         <input type="text" id="studentName" placeholder="Jaise: Anil Kumar" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                     <div>
+                     <div class="md:col-span-2">
                         <label for="contactNumber" class="block text-sm font-medium text-gray-600 mb-1">Contact Number</label>
                         <input type="tel" id="contactNumber" placeholder="03xx-xxxxxxx" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
@@ -144,7 +145,7 @@
                             <option value="Yearly Test">Yearly Test</option>
                         </select>
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-1">
                         <label for="topicName" class="block text-sm font-medium text-gray-600 mb-1">Topic ka Naam</label>
                         <input type="text" id="topicName" placeholder="Jaise: Algebra" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
@@ -156,11 +157,11 @@
                         <label for="totalMarks" class="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
                         <input type="number" id="totalMarks" value="100" min="1" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                     <div class="md:col-span-4">
+                     <div class="md:col-span-2">
                         <label for="resultDate" class="block text-sm font-medium text-gray-600 mb-1">Date</label>
                         <input type="date" id="resultDate" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                    <div class="md:col-span-4 mt-2">
+                    <div class="md:col-span-2 mt-2 self-end">
                         <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition duration-300 shadow-md hover:shadow-lg">
                             <i data-lucide="plus-circle" class="w-5 h-5"></i> Add Result
                         </button>
@@ -169,11 +170,11 @@
                 <p id="errorMessage" class="text-red-500 text-sm mt-2 hidden">Please sabhi fields bharein.</p>
             </div>
 
-            <div class="lg:col-span-2 bg-gray-50 p-6 rounded-xl border border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Subjects Manage Karein</h2>
+            <div class="lg:col-span-1 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Subjects</h2>
                 <div class="space-y-4">
-                    <input type="text" id="newSubjectInput" placeholder="Naya Subject Add Karein" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
-                    <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="newSubjectInput" placeholder="Naya Subject" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    <div class="flex flex-col gap-2">
                         <button id="addSubjectBtn" class="w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 transition duration-300 shadow-md hover:shadow-lg">
                             <i data-lucide="plus" class="w-5 h-5"></i> Add
                         </button>
@@ -703,23 +704,40 @@
             });
 
             // --- Exporting ---
-            exportPdfBtn.addEventListener('click', async () => {
-                const table = document.getElementById('resultsTable');
-                if (getFilteredResults().length === 0) {
+             exportPdfBtn.addEventListener('click', () => {
+                const resultsToExport = getFilteredResults();
+                if (resultsToExport.length === 0) {
                     showAlert('No results to export.');
                     return;
                 }
+                
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                // Using html2canvas to render the table
-                const canvas = await html2canvas(table);
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = doc.getImageProperties(imgData);
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                
-                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                const doc = new jsPDF({ orientation: 'landscape' });
+
+                doc.text("Student Results - IBAGRADS XI-XII", 14, 16);
+
+                const head = [['Student Name', 'Contact', 'Gender', 'Class', 'Program', 'Test Type', 'Subject', 'Score', 'Date']];
+                const body = resultsToExport.map(r => [
+                    r.studentName,
+                    r.contactNumber || 'N/A',
+                    r.gender || 'N/A',
+                    r.studentClass,
+                    r.degree,
+                    r.testType,
+                    r.subject,
+                    `${r.score}/${r.totalMarks}`,
+                    new Date(r.resultDate).toLocaleDateString()
+                ]);
+
+                doc.autoTable({
+                    head: head,
+                    body: body,
+                    startY: 20,
+                    theme: 'grid',
+                    styles: { fontSize: 8 },
+                    headStyles: { fillColor: [41, 128, 185] }, // A nice blue color
+                });
+
                 doc.save('student_results.pdf');
             });
             
