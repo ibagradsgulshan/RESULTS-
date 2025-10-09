@@ -13,7 +13,7 @@
     <!-- PDF & Excel Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Chart.js for performance visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -74,14 +74,15 @@
         
         @media print {
             body * { visibility: hidden; }
-            #printable-area, #printable-area * { visibility: visible; }
-            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+            #final-printable, #final-printable * { visibility: visible; }
+            #final-printable { position: absolute; left: 0; top: 0; width: 100%; padding: 2rem; }
+            .no-print { display: none; }
         }
     </style>
 </head>
 <body class="body-bg flex items-center justify-center min-h-screen p-4 sm:p-6">
 
-    <div class="w-full max-w-7xl mx-auto main-container rounded-2xl shadow-xl p-6 sm:p-8">
+    <div class="w-full max-w-screen-2xl mx-auto main-container rounded-2xl shadow-xl p-6 sm:p-8">
         
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-4 border-b border-gray-200">
@@ -102,14 +103,14 @@
         
         <!-- Form & Subject Management in a Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-            <div class="lg:col-span-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <div class="lg:col-span-9 bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">ADD NEW RESULTS</h2>
-                <form id="resultForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
+                <form id="resultForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2">
                         <label for="studentName" class="block text-sm font-medium text-gray-600 mb-1">Student ka Naam</label>
                         <input type="text" id="studentName" placeholder="Jaise: Anil Kumar" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                     <div>
+                     <div class="md:col-span-2">
                         <label for="contactNumber" class="block text-sm font-medium text-gray-600 mb-1">Contact Number</label>
                         <input type="tel" id="contactNumber" placeholder="03xx-xxxxxxx" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
@@ -165,11 +166,11 @@
                         <label for="totalMarks" class="block text-sm font-medium text-gray-600 mb-1">Total Marks</label>
                         <input type="number" id="totalMarks" value="100" min="1" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                     <div class="md:col-span-3">
+                     <div class="md:col-span-2">
                         <label for="resultDate" class="block text-sm font-medium text-gray-600 mb-1">Date</label>
                         <input type="date" id="resultDate" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" required>
                     </div>
-                    <div class="md:col-span-3 mt-2">
+                    <div class="md:col-span-2 mt-2 self-end">
                         <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 transition duration-300 shadow-md hover:shadow-lg">
                             <i data-lucide="plus-circle" class="w-5 h-5"></i> Add Result
                         </button>
@@ -178,7 +179,7 @@
                 <p id="errorMessage" class="text-red-500 text-sm mt-2 hidden">Please sabhi fields bharein.</p>
             </div>
 
-            <div class="lg:col-span-4 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <div class="lg:col-span-3 bg-gray-50 p-6 rounded-xl border border-gray-200">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Subjects Manage Karein</h2>
                 <div class="space-y-4">
                     <input type="text" id="newSubjectInput" placeholder="Naya Subject Add Karein" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
@@ -196,7 +197,7 @@
         </div>
 
         <!-- Results Table Section -->
-        <div class="overflow-x-auto bg-gray-50 p-6 rounded-xl border border-gray-200">
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
             <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                 <h2 class="text-xl font-semibold text-gray-700">Uploaded Results</h2>
                 <div class="w-full md:w-auto flex flex-wrap justify-center md:justify-end items-center gap-2">
@@ -213,23 +214,25 @@
                 </div>
             </div>
 
-            <table id="resultsTable" class="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
-                <thead class="bg-gray-100 text-gray-600">
-                    <tr>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Student Naam</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Contact</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Gender</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Class</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Program</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Test Type</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Subject</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Score</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Date</th>
-                        <th class="text-center py-3 px-4 uppercase font-semibold text-sm">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="resultsTableBody" class="text-gray-700 divide-y divide-gray-200"></tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table id="resultsTable" class="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
+                    <thead class="bg-gray-100 text-gray-600">
+                        <tr>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Student Naam</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Contact</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Gender</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Class</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Program</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Test Type</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Subject</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Score</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Date</th>
+                            <th class="text-center py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody" class="text-gray-700 divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
             <div id="noResultsMessage" class="text-center py-10 text-gray-500 hidden"><p>Abhi tak koi result upload nahi hua hai.</p></div>
         </div>
     </div>
@@ -340,15 +343,6 @@
                 const filteredByType = currentFilter === 'All' ? currentResults : currentResults.filter(r => r.testType === currentFilter);
                 return filteredByType.filter(r => r.studentName.toLowerCase().includes(searchTerm));
             };
-            const downloadBlob = (blob, filename) => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
-
 
             // --- Rendering ---
             const renderResults = () => {
@@ -361,21 +355,21 @@
                     row.dataset.id = data.id;
                     const percentage = data.totalMarks > 0 ? ((data.score / data.totalMarks) * 100).toFixed(2) : 'N/A';
                     row.innerHTML = `
-                        <td class="py-3 px-4 font-medium">${data.studentName}</td>
-                        <td class="py-3 px-4">
+                        <td class="py-3 px-4 font-medium whitespace-nowrap">${data.studentName}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
                             <a href="#" data-id="${data.id}" class="contact-link text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-green-500"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.651 4.383 1.803 6.151l-1.342 4.885 4.897-1.341zM9.043 8.114c-.195-.426-.38-.435-.57-.435-.16 0-.33.004-.495.004-.21 0-.525.074-.795.372-.27.297-.995.976-.995 2.377s1.02 2.768 1.155 2.942c.135.174.995 1.596 2.404 2.247 1.15.525 1.83.84 2.32.96.49.12.89.1.96.03.07-.07.33-.135.33-.135.33-.135.33-.24.33-.305s0-.105-.03-.135c-.03-.03-.105-.06-.21-.105-.105-.045-.69-.345-.8-.385s-.195-.06-.27.06c-.075.12-.27.345-.33.405s-.12.075-.21.045c-.09-.03-.375-.12-.713-.426-.27-.24-.45-.426-.6-.6s-.105-.27-.045-.426c.06-.15.135-.195.195-.255.06-.06.105-.105.15-.165.045-.06.03-.105-.015-.165s-.27-.615-.375-.825c-.105-.21-.21-.18-.285-.18-.075 0-.165-.004-.24-.004z"></path></svg>
                                 <span>${data.contactNumber || 'N/A'}</span>
                             </a>
                         </td>
-                        <td class="py-3 px-4">${data.gender}</td>
-                        <td class="py-3 px-4">${data.studentClass}</td>
-                        <td class="py-3 px-4">${data.degree}</td>
-                        <td class="py-3 px-4">${data.testType}</td>
-                        <td class="py-3 px-4">${data.subject}</td>
-                        <td class="py-3 px-4">${data.score} / ${data.totalMarks} (${percentage}%)</td>
-                        <td class="py-3 px-4">${new Date(data.resultDate).toLocaleDateString()}</td>
-                        <td class="py-3 px-4">
+                        <td class="py-3 px-4 whitespace-nowrap">${data.gender}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${data.studentClass}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${data.degree}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${data.testType}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${data.subject}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${data.score} / ${data.totalMarks} (${percentage}%)</td>
+                        <td class="py-3 px-4 whitespace-nowrap">${new Date(data.resultDate).toLocaleDateString()}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
                             <div class="flex items-center justify-center space-x-2">
                                 <button data-id="${data.id}" class="view-card-btn p-2 text-blue-600 hover:bg-blue-100 rounded-full transition"><i data-lucide="eye" class="w-5 h-5 pointer-events-none"></i></button>
                                 <button data-id="${data.id}" class="edit-btn p-2 text-yellow-600 hover:bg-yellow-100 rounded-full transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button>
@@ -579,7 +573,7 @@
                         <button onclick="document.getElementById('cardModal').classList.remove('active')" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Close</button>
                     </div>`;
                 lucide.createIcons();
-                document.getElementById('shareCardBtn').addEventListener('click', () => handleShareCard(data));
+                document.getElementById('shareCardBtn').addEventListener('click', () => handleShareCard(data, true));
                 document.getElementById('downloadCardPdfBtn').addEventListener('click', () => downloadCardAsPDF(data.studentName));
                 showModal('cardModal');
             };
@@ -591,7 +585,6 @@
                 
                 let whatsappUrl;
                 if (direct && data.contactNumber) {
-                    // Basic validation for Pakistan number
                     let phone = data.contactNumber.replace(/[^0-9]/g, '');
                     if (phone.startsWith('03')) {
                         phone = '92' + phone.substring(1);
@@ -689,20 +682,34 @@
             };
 
             // --- Exporting ---
-            exportPdfBtn.addEventListener('click', () => {
+             exportPdfBtn.addEventListener('click', () => {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const table = document.getElementById('resultsTable');
-                
-                doc.autoTable({ 
-                    html: table,
+                const doc = new jsPDF({ orientation: 'landscape' });
+                const resultsToExport = getFilteredResults();
+                 if (resultsToExport.length === 0) {
+                    return showAlert('No results to export.');
+                }
+
+                doc.autoTable({
+                    head: [['Student Name', 'Contact', 'Gender', 'Class', 'Program', 'Test Type', 'Subject', 'Score', 'Date']],
+                    body: resultsToExport.map(r => [
+                        r.studentName,
+                        r.contactNumber || 'N/A',
+                        r.gender,
+                        r.studentClass,
+                        r.degree,
+                        r.testType,
+                        r.subject,
+                        `${r.score}/${r.totalMarks}`,
+                        new Date(r.resultDate).toLocaleDateString()
+                    ]),
                     startY: 20,
                     theme: 'grid',
                     headStyles: { fillColor: [22, 160, 133] },
-                    styles: { fontSize: 8 },
+                    styles: { fontSize: 8, cellPadding: 2 },
                     didDrawPage: (data) => {
                         doc.setFontSize(18);
-                        doc.text("Student Results", data.settings.margin.left, 15);
+                        doc.text("Student Results Export", data.settings.margin.left, 15);
                     }
                 });
                 doc.save('student-results.pdf');
@@ -722,6 +729,9 @@
                     "Total Marks": r.totalMarks,
                     "Date": new Date(r.resultDate).toLocaleDateString()
                 }));
+                 if (resultsToExport.length === 0) {
+                    return showAlert('No results to export.');
+                }
                 const ws = XLSX.utils.json_to_sheet(resultsToExport);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Results");
@@ -799,7 +809,7 @@
                             </div>
                          </div>
                     </div>
-                    <div class="flex justify-end gap-3 mt-6">
+                    <div class="flex justify-end gap-3 mt-6 no-print">
                         <button onclick="window.print()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center gap-2"><i data-lucide="printer"></i> Print</button>
                         <button onclick="document.getElementById('finalResultModal').classList.remove('active')" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Close</button>
                     </div>`;
