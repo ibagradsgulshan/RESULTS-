@@ -15,6 +15,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js for performance visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -197,8 +199,8 @@
         <div class="overflow-x-auto bg-gray-50 p-6 rounded-xl border border-gray-200">
             <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                 <h2 class="text-xl font-semibold text-gray-700">Uploaded Results</h2>
-                <div class="flex flex-wrap items-center gap-2">
-                    <input type="text" id="searchInput" placeholder="Student ke naam se khojein..." class="w-full md:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                <div class="w-full md:w-auto flex flex-wrap justify-center md:justify-end items-center gap-2">
+                    <input type="text" id="searchInput" placeholder="Student ke naam se khojein..." class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                      <div id="testTypeFilters" class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                         <button data-filter="All" class="filter-btn active font-semibold py-1 px-3 rounded-md transition">All</button>
                         <button data-filter="Weekly Test" class="filter-btn font-semibold py-1 px-3 rounded-md transition">Weekly</button>
@@ -235,7 +237,7 @@
     <!-- Modals -->
     <div id="cardModal" class="modal-overlay"><div id="cardModalContainer" class="modal-container w-full max-w-2xl"></div></div>
     <div id="editModal" class="modal-overlay"><div id="editModalContainer" class="modal-container w-full max-w-lg"></div></div>
-    <div id="finalResultModal" class="modal-overlay"><div id="finalResultModalContainer" class="modal-container w-full max-w-5xl"></div></div>
+    <div id="finalResultModal" class="modal-overlay"><div id="finalResultModalContainer" class="modal-container w-full max-w-7xl"></div></div>
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-container w-full max-w-sm text-center">
             <h3 id="confirmTitle" class="text-lg font-bold text-gray-800 mb-4">Confirm Action</h3>
@@ -748,10 +750,15 @@
                     return acc;
                 }, {});
 
+                const gradeDistribution = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
                 let tableRows = '';
+                
                 Object.entries(finalResults).forEach(([name, data]) => {
                     const percentage = data.totalMarks > 0 ? (data.totalScore / data.totalMarks * 100).toFixed(2) : 0;
                     const grade = calculateGrade(percentage);
+                    if (gradeDistribution.hasOwnProperty(grade)) {
+                        gradeDistribution[grade]++;
+                    }
                     tableRows += `
                         <tr class="border-b">
                             <td class="py-2 px-3 font-medium">${name}</td>
@@ -767,21 +774,30 @@
                 const container = document.getElementById('finalResultModalContainer');
                 container.innerHTML = `
                     <div id="final-printable">
-                        <h2 class="text-2xl font-bold mb-4 text-center">Final Consolidated Results</h2>
-                        <table class="w-full text-left bg-white">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="py-2 px-3">Student Name</th>
-                                    <th class="py-2 px-3">Gender</th>
-                                    <th class="py-2 px-3">Class</th>
-                                    <th class="py-2 px-3">Program</th>
-                                    <th class="py-2 px-3">Total Score</th>
-                                    <th class="py-2 px-3">Percentage</th>
-                                    <th class="py-2 px-3">Overall Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tableRows}</tbody>
-                        </table>
+                         <h2 class="text-2xl font-bold mb-6 text-center">Final Consolidated Results & Performance</h2>
+                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                 <h3 class="text-xl font-semibold mb-2 text-center">Grade Distribution</h3>
+                                 <canvas id="gradeChart"></canvas>
+                            </div>
+                             <div class="max-h-[50vh] overflow-y-auto">
+                                <h3 class="text-xl font-semibold mb-2 text-center">Summary Table</h3>
+                                <table class="w-full text-left bg-white text-sm">
+                                    <thead class="bg-gray-100 sticky top-0">
+                                        <tr>
+                                            <th class="py-2 px-3">Student Name</th>
+                                            <th class="py-2 px-3">Gender</th>
+                                            <th class="py-2 px-3">Class</th>
+                                            <th class="py-2 px-3">Program</th>
+                                            <th class="py-2 px-3">Total Score</th>
+                                            <th class="py-2 px-3">Percentage</th>
+                                            <th class="py-2 px-3">Overall Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${tableRows}</tbody>
+                                </table>
+                            </div>
+                         </div>
                     </div>
                     <div class="flex justify-end gap-3 mt-6">
                         <button onclick="window.print()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center gap-2"><i data-lucide="printer"></i> Print</button>
@@ -789,6 +805,50 @@
                     </div>`;
                 lucide.createIcons();
                 showModal('finalResultModal');
+
+                const ctx = document.getElementById('gradeChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(gradeDistribution),
+                        datasets: [{
+                            label: '# of Students',
+                            data: Object.values(gradeDistribution),
+                            backgroundColor: [
+                                'rgba(22, 160, 133, 0.6)',
+                                'rgba(46, 204, 113, 0.6)',
+                                'rgba(52, 152, 219, 0.6)',
+                                'rgba(241, 196, 15, 0.6)',
+                                'rgba(230, 126, 34, 0.6)',
+                                'rgba(231, 76, 60, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(22, 160, 133, 1)',
+                                'rgba(46, 204, 113, 1)',
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(230, 126, 34, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
             });
 
 
@@ -817,5 +877,7 @@
     </script>
 </body>
 </html>
+
+
 
 
