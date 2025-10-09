@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,11 +59,21 @@
             width: 95%;
         }
         .modal-overlay.active .modal-container { transform: scale(1); }
-        /* Custom scrollbar for modals */
-        .modal-container::-webkit-scrollbar { width: 8px; }
-        .modal-container::-webkit-scrollbar-track { background: #f1f1f1; }
-        .modal-container::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-        .modal-container::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* Custom scrollbar for modals and overflow divs */
+        .modal-container::-webkit-scrollbar, .overflow-x-auto::-webkit-scrollbar { 
+            width: 8px;
+            height: 8px; 
+        }
+        .modal-container::-webkit-scrollbar-track, .overflow-x-auto::-webkit-scrollbar-track { 
+            background: #f1f1f1; 
+        }
+        .modal-container::-webkit-scrollbar-thumb, .overflow-x-auto::-webkit-scrollbar-thumb { 
+            background: #a8a8a8; 
+            border-radius: 4px; 
+        }
+        .modal-container::-webkit-scrollbar-thumb:hover, .overflow-x-auto::-webkit-scrollbar-thumb:hover { 
+            background: #888; 
+        }
 
         /* Custom styling for filter buttons */
         .filter-btn.active {
@@ -213,9 +222,10 @@
                     <button id="exportExcelBtn" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition flex items-center gap-2 shadow-md hover:shadow-lg"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Excel</button>
                 </div>
             </div>
-
+            
+            <!-- SCROLLBAR FIX: This div wrapper with overflow-x-auto will show a horizontal scrollbar if the table inside is wider than the screen. -->
             <div class="overflow-x-auto">
-                <table id="resultsTable" class="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
+                <table id="resultsTable" class="w-full bg-white rounded-lg shadow-md">
                     <thead class="bg-gray-100 text-gray-600">
                         <tr>
                             <th class="text-left py-3 px-4 uppercase font-semibold text-sm whitespace-nowrap">Student Naam</th>
